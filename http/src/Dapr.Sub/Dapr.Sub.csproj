@@ -4,5 +4,10 @@
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+      <PackageReference Include="System.Management.Automation" Version="6.2.7" />
+    </ItemGroup>
+
 
 </Project>

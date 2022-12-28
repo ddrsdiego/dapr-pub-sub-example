@@ -1,15 +1,11 @@
 namespace Dapr.Sub
 {
-    using System.Text.Json;
+    using System.Reflection;
     using System.Text.Json.Serialization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Routing;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Services;
 
     public class Startup
     {
@@ -25,13 +21,15 @@ namespace Dapr.Sub
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwaggerUI(c =>
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", Assembly.GetEntryAssembly()?.GetName().Name));
             }
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapGetDaprSubscriber();
+                // endpoints.MapDaprSubscriber();
                 endpoints.MapOrderRedeemCreatedTopic();
                 endpoints.MapOrderInvestmentCreatedTopic();
             });
@@ -40,11 +38,7 @@ namespace Dapr.Sub
         
     }
 
-    public record DaprSubscription(
-        [property: JsonPropertyName("pubsubname")]
-        string PubsubName,
-        [property: JsonPropertyName("topic")] string Topic,
-        [property: JsonPropertyName("route")] string Route);
+
 
     public record DaprData<T>([property: JsonPropertyName("data")] T Data);
 }

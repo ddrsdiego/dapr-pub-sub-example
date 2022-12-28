@@ -1,18 +1,23 @@
 namespace Dapr.Sub
 {
+    using System.Reflection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.OpenApi.Models;
     using Services;
+    using System.Threading.Tasks;
 
-    public class Program
+    public abstract class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            await CreateHostBuilder(args)
+                .Build()
+                .RunAsync();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
@@ -22,6 +27,8 @@ namespace Dapr.Sub
                 {
                     services.AddControllers();
                     services.AddSingleton<IOrderProcessor, OrderProcessor>();
+                    services.AddSwaggerGen(c =>
+                        c.SwaggerDoc("v1", new OpenApiInfo {Title = Assembly.GetEntryAssembly()?.GetName().Name}));
                 });
     }
 }

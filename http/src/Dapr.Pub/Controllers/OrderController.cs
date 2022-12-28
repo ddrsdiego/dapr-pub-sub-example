@@ -1,6 +1,5 @@
 ﻿namespace Dapr.Pub.Controllers
 {
-    using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
@@ -10,6 +9,17 @@
     using Models;
     using Requests;
 
+    internal static class Topics
+    {
+        public const string OrderRedeemCreated = "order-redeem-created";
+        public const string OrderInvestmentCreated = "order-investment-created";
+    }
+
+    internal static class PubSubNames
+    {
+        public const string InvestmentsOrders = "investments-orders";
+    }
+    
     [ApiController]
     [Route("orders")]
     public class OrderController : ControllerBase
@@ -22,9 +32,10 @@
         }
 
         [HttpPost("invest")]
-        public async Task<IActionResult> RequestNewInvestmentOrder([FromBody] NewInvestmentOrderRequest newInvestmentOrderRequest)
+        public async Task<IActionResult> RequestNewInvestmentOrder(
+            [FromBody] NewOrderInvestmentRequest newOrderInvestmentRequest)
         {
-            var newOrder = new Order(Guid.NewGuid().ToString(), newInvestmentOrderRequest.Quantity, newInvestmentOrderRequest.UnitPrice);
+            var newOrder = new Order(newOrderInvestmentRequest.Quantity, newOrderInvestmentRequest.UnitPrice);
 
             await SaveStateAsync(newOrder);
             await PublishOrderInvestmentCreated(newOrder);
@@ -33,16 +44,17 @@
         }
 
         [HttpPost("redeem")]
-        public async Task<IActionResult> RequestNewRedeemOrder([FromBody] NewInvestmentOrderRequest newInvestmentOrderRequest)
+        public async Task<IActionResult> RequestNewRedeemOrder(
+            [FromBody] NewOrderRedeemRequest newOrderRedeemRequest)
         {
-            var newOrder = new Order(Guid.NewGuid().ToString(), newInvestmentOrderRequest.Quantity, newInvestmentOrderRequest.UnitPrice);
+            var newOrder = new Order(newOrderRedeemRequest.Quantity, newOrderRedeemRequest.UnitPrice);
 
             await SaveStateAsync(newOrder);
             await PublishOrderRedeemCreated(newOrder);
 
             return Accepted(newOrder);
         }
-        
+
         private async Task PublishOrderInvestmentCreated(Order newOrder)
         {
             var httpClient = _httpClientFactory.CreateClient("order");
@@ -52,7 +64,8 @@
 
             var content = new StringContent(orderJson, Encoding.UTF8, "application/json");
             var httpResponseTask =
-                await httpClient.PostAsync("http://localhost:3501/v1.0/publish/investments-orders/order-investment-created",
+                await httpClient.PostAsync(
+                    $"http://localhost:3501/v1.0/publish/{PubSubNames.InvestmentsOrders}/{Topics.OrderInvestmentCreated}",
                     content);
         }
 
@@ -65,10 +78,10 @@
 
             var content = new StringContent(orderJson, Encoding.UTF8, "application/json");
             var httpResponseTask =
-                await httpClient.PostAsync("http://localhost:3501/v1.0/publish/investments-orders/order-redeem-created",
+                await httpClient.PostAsync($"http://localhost:3501/v1.0/publish/{PubSubNames.InvestmentsOrders}/{Topics.OrderInvestmentCreated}",
                     content);
         }
-        
+
         private async Task SaveStateAsync(Order newOrder)
         {
             var httpClient = _httpClientFactory.CreateClient("order");

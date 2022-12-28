@@ -6,9 +6,15 @@ namespace Dapr.Sub
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
 
+    internal record DaprSubscription(
+        [property: JsonPropertyName("pubsubname")]
+        string PubsubName,
+        [property: JsonPropertyName("topic")] string Topic,
+        [property: JsonPropertyName("route")] string Route);
+    
     public static class DaprSubscribeEndpoint
     {
-        public static void MapGetDaprSubscriber(this IEndpointRouteBuilder endpoints)
+        public static void MapDaprSubscriber(this IEndpointRouteBuilder endpoints)
         {
             endpoints.MapGet("/dapr/subscribe", async (context) =>
             {

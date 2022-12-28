@@ -1,0 +1,8 @@
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: order-redeem-created-subscription
+spec:
+  pubsubname: investments-orders
+  topic: "order-redeem-created"
+  route: "/order-redeem-created"
