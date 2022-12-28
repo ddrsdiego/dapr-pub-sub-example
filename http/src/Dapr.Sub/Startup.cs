@@ -26,19 +26,7 @@ namespace Dapr.Sub
             }
 
             app.UseRouting();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                // endpoints.MapDaprSubscriber();
-                endpoints.MapOrderRedeemCreatedTopic();
-                endpoints.MapOrderInvestmentCreatedTopic();
-            });
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
-
-        
     }
-
-
-
-    public record DaprData<T>([property: JsonPropertyName("data")] T Data);
 }

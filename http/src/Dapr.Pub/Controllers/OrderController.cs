@@ -78,7 +78,7 @@
 
             var content = new StringContent(orderJson, Encoding.UTF8, "application/json");
             var httpResponseTask =
-                await httpClient.PostAsync($"http://localhost:3501/v1.0/publish/{PubSubNames.InvestmentsOrders}/{Topics.OrderInvestmentCreated}",
+                await httpClient.PostAsync($"http://localhost:3501/v1.0/publish/{PubSubNames.InvestmentsOrders}/{Topics.OrderRedeemCreated}",
                     content);
         }
 
