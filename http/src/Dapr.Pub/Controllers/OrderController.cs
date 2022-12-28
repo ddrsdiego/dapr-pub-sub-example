@@ -19,7 +19,7 @@
     {
         public const string InvestmentsOrders = "investments-orders";
     }
-    
+
     [ApiController]
     [Route("orders")]
     public class OrderController : ControllerBase
@@ -32,32 +32,30 @@
         }
 
         [HttpPost("invest")]
-        public async Task<IActionResult> RequestNewInvestmentOrder(
-            [FromBody] NewOrderInvestmentRequest newOrderInvestmentRequest)
+        public async Task<IActionResult> RequestNewInvestmentOrder([FromBody] NewOrderInvestmentRequest request)
         {
-            var newOrder = new Order(newOrderInvestmentRequest.Quantity, newOrderInvestmentRequest.UnitPrice);
+            var newOrder = new Order(request.Quantity, request.UnitPrice);
 
-            await SaveStateAsync(newOrder);
-            await PublishOrderInvestmentCreated(newOrder);
+            await SaveStateAsync("order-investment", newOrder);
+            _ = PublishOrderInvestmentCreated(newOrder);
 
             return Accepted(newOrder);
         }
 
         [HttpPost("redeem")]
-        public async Task<IActionResult> RequestNewRedeemOrder(
-            [FromBody] NewOrderRedeemRequest newOrderRedeemRequest)
+        public async Task<IActionResult> RequestNewRedeemOrder([FromBody] NewOrderRedeemRequest request)
         {
-            var newOrder = new Order(newOrderRedeemRequest.Quantity, newOrderRedeemRequest.UnitPrice);
+            var newOrder = new Order(request.Quantity, request.UnitPrice);
 
-            await SaveStateAsync(newOrder);
-            await PublishOrderRedeemCreated(newOrder);
+            await SaveStateAsync("order-redeem", newOrder);
+            _ = PublishOrderRedeemCreated(newOrder);
 
             return Accepted(newOrder);
         }
 
         private async Task PublishOrderInvestmentCreated(Order newOrder)
         {
-            var httpClient = _httpClientFactory.CreateClient("order");
+            var httpClient = _httpClientFactory.CreateClient(Topics.OrderInvestmentCreated);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             var orderJson = JsonSerializer.Serialize(newOrder);
@@ -71,28 +69,30 @@
 
         private async Task PublishOrderRedeemCreated(Order newOrder)
         {
-            var httpClient = _httpClientFactory.CreateClient("order");
+            var httpClient = _httpClientFactory.CreateClient(Topics.OrderRedeemCreated);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             var orderJson = JsonSerializer.Serialize(newOrder);
 
             var content = new StringContent(orderJson, Encoding.UTF8, "application/json");
             var httpResponseTask =
-                await httpClient.PostAsync($"http://localhost:3501/v1.0/publish/{PubSubNames.InvestmentsOrders}/{Topics.OrderRedeemCreated}",
+                await httpClient.PostAsync(
+                    $"http://localhost:3501/v1.0/publish/{PubSubNames.InvestmentsOrders}/{Topics.OrderRedeemCreated}",
                     content);
         }
 
-        private async Task SaveStateAsync(Order newOrder)
+        private async Task SaveStateAsync(string stateName, Order newOrder)
         {
-            var httpClient = _httpClientFactory.CreateClient("order");
+            var httpClient = _httpClientFactory.CreateClient(stateName);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            var key = $"{stateName.ToLowerInvariant()}-{newOrder.OrderId}";
             var orderAsJson = JsonSerializer.Serialize(
                 new[]
                 {
                     new
                     {
-                        key = newOrder.ToString(),
+                        key = key,
                         value = newOrder
                     }
                 }

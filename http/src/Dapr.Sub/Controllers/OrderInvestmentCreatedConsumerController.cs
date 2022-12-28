@@ -10,16 +10,16 @@
     public sealed class OrderInvestmentCreatedConsumerController : ControllerBase
     {
         private readonly IOrderProcessor _orderProcessor;
-        
+
         public OrderInvestmentCreatedConsumerController(IOrderProcessor orderProcessor)
         {
             _orderProcessor = orderProcessor;
         }
-        
+
         [HttpPost("order-investment-created")]
         public async Task<IActionResult> Receive([FromBody] DaprData<Order> message)
         {
-            await _orderProcessor.Process(message.Data);
+            await _orderProcessor.Process("order-investment", message.Data);
             return Ok();
         }
     }

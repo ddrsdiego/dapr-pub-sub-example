@@ -15,11 +15,11 @@
         {
             _orderProcessor = orderProcessor;
         }
-        
+
         [HttpPost("order-redeem-created")]
         public async Task<IActionResult> ReceiveOrderRedeemCreated([FromBody] DaprData<Order> message)
         {
-            await _orderProcessor.Process(message.Data);
+            await _orderProcessor.Process("order-redeem", message.Data);
             return Ok();
         }
     }

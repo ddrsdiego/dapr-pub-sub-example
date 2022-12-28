@@ -7,6 +7,7 @@ namespace Dapr.Sub
     using Microsoft.OpenApi.Models;
     using Services;
     using System.Threading.Tasks;
+    using Repositories;
 
     public abstract class Program
     {
@@ -26,7 +27,9 @@ namespace Dapr.Sub
                 .ConfigureServices((context, services) =>
                 {
                     services.AddControllers();
+                    services.AddHttpClient();
                     services.AddSingleton<IOrderProcessor, OrderProcessor>();
+                    services.AddSingleton<IOrderRepository, OrderRepository>();
                     services.AddSwaggerGen(c =>
                         c.SwaggerDoc("v1", new OpenApiInfo {Title = Assembly.GetEntryAssembly()?.GetName().Name}));
                 });
